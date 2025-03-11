@@ -1,6 +1,7 @@
 ﻿$(document).ready(function () {
     const API_URL = "https://www.federalregister.gov/api/v1/documents.json?per_page=100&order=newest";
     let agencyData = {};
+    let currentData = []; // Stores currently selected agencies for sorting
 
     function fetchECFRData() {
         $.getJSON(API_URL, function (response) {
@@ -22,7 +23,7 @@
 
             agencyData = tempAgencyData;
             populateAgencyDropdown(Object.keys(agencyData).sort());
-            populateTable(Object.entries(agencyData));
+            populateTable(Object.entries(agencyData)); // Load full data initially
         }).fail(function () {
             console.error("❌ API Request Failed.");
         });
@@ -39,12 +40,12 @@
         agencyDropdown.change(function () {
             let selectedAgencies = $(this).val();
             if (!selectedAgencies || selectedAgencies.includes("all")) {
-                populateTable(Object.entries(agencyData));
+                currentData = Object.entries(agencyData);
             } else {
-                let filteredData = Object.entries(agencyData)
+                currentData = Object.entries(agencyData)
                     .filter(([agency]) => selectedAgencies.includes(agency));
-                populateTable(filteredData);
             }
+            populateTable(currentData);
         });
     }
 
@@ -63,15 +64,14 @@
     });
 
     $("#agencyHeader").click(function () {
-        let sortedData = Object.entries(agencyData).sort(([a], [b]) => a.localeCompare(b));
-        populateTable(sortedData);
+        currentData.sort(([a], [b]) => a.localeCompare(b));
+        populateTable(currentData);
     });
 
     $("#wordCountHeader").click(function () {
-        let sortedData = Object.entries(agencyData).sort(([, a], [, b]) => b - a);
-        populateTable(sortedData);
+        currentData.sort(([, a], [, b]) => b - a);
+        populateTable(currentData);
     });
 
     fetchECFRData();
 });
-
